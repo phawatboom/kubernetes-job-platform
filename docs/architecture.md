@@ -80,7 +80,9 @@ side effect requires that provider's idempotency/reconciliation mechanism.
   are outside this guarantee. Both API replicas run on one node in this lab.
 - **Quota:** CPU/memory, Pod and Job counts, and storage are bounded. Twelve retained
   Jobs can temporarily exhaust object quota; new requests remain queued until
-  TTL cleanup frees capacity. Six active reports does not mean six running Pods.
+  TTL cleanup frees capacity. Existing Job outcomes are reconciled before new
+  creation attempts, so quota rejection does not hide terminal outcomes. Six
+  active reports does not mean six running Pods.
 - **Persistence:** one StatefulSet, one 1 GiB PVC with kind's local provisioner.
   This proves Pod-level persistence only. It is neither replication nor a backup.
 - **Exposure:** kind maps the API NodePort to host loopback 8095. PostgreSQL has

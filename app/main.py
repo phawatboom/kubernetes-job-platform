@@ -19,15 +19,7 @@ log = logging.getLogger("dispatch")
 
 
 def reconcile(kube):
-    # Deterministic names bridge the DB/cluster commit gap. Multiple API replicas
-    # claim separate rows; 409 means the previous create already took effect.
-    with connection() as conn:
-        row = conn.execute("SELECT id FROM reports WHERE status='queued' ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT 1").fetchone()
-        if row:
-            code, _ = kube.create(row["id"])
-            if code not in (201, 409):
-                raise RuntimeError("Unexpected Job create response")
-            conn.execute("UPDATE reports SET status='submitted' WHERE id=%s", (row["id"],))
+    # Reconcile existing work before creates: exhausted Job quota must not hide completion.
     with connection() as conn:
         rows = conn.execute("SELECT id FROM reports WHERE status IN ('submitted','running') LIMIT 10").fetchall()
     for row in rows:
@@ -39,6 +31,16 @@ def reconcile(kube):
                 conn.execute("""UPDATE reports SET status=%s, finished_at=now(),
                     last_error=COALESCE(last_error, %s) WHERE id=%s AND status IN ('submitted','running')""",
                     ("lost" if code == 404 else "failed", "Job missing; operator reconciliation required" if code == 404 else "Job retry budget or deadline exhausted", row["id"]))
+
+    # Deterministic names bridge the DB/cluster commit gap. Multiple API replicas
+    # claim separate rows; 409 means the previous create already took effect.
+    with connection() as conn:
+        row = conn.execute("SELECT id FROM reports WHERE status='queued' ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT 1").fetchone()
+        if row:
+            code, _ = kube.create(row["id"])
+            if code not in (201, 409):
+                raise RuntimeError("Unexpected Job create response")
+            conn.execute("UPDATE reports SET status='submitted' WHERE id=%s", (row["id"],))
 
 
 @asynccontextmanager
