@@ -44,6 +44,18 @@ uv run --locked --extra test python -m pytest -q
 python scripts/verify.py
 ```
 
+For the dashboard checks, install Node 24+ and then run:
+
+```sh
+npm ci
+npx playwright install chromium
+npm run test:e2e
+```
+
+On Linux, `npx playwright install --with-deps chromium` also installs the browser's
+system libraries and may require sudo. Browser artifacts use
+`test-results/browser/`; they do not clear the cluster verification report.
+
 The cluster check deliberately deletes one worker Pod, briefly scales the API
 to zero, inserts one controlled queued row to model a crash after acceptance,
 scales up, tests a repeated Job create, exercises real RBAC denials, scales
