@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: dispatcher, namespace: dispatch}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: job-dispatch, namespace: dispatch}
+rules:
+  - apiGroups: [batch]
+    resources: [jobs]
+    verbs: [create, get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: job-dispatch, namespace: dispatch}
+subjects:
+  - kind: ServiceAccount
+    name: dispatcher
+    namespace: dispatch
+roleRef:
+  kind: Role
+  name: job-dispatch
+  apiGroup: rbac.authorization.k8s.io
