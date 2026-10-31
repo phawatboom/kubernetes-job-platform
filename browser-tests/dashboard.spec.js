@@ -3,19 +3,23 @@ import { test, expect } from '@playwright/test';
 test('complete a real report and inspect its result', async ({page}) => {
   const errors=[]; page.on('pageerror', e=>errors.push(e.message));
   await page.goto('/');
-  await expect(page.getByRole('status').first()).toContainText('Cluster connected');
+  await expect(page.getByRole('status').first()).toContainText('API connected');
   await page.getByRole('button', {name:'Dispatch report'}).click();
   await expect(page.locator('.report')).toHaveCount(1);
   await expect(page.locator('.badge')).toHaveText('succeeded', {timeout:90000});
   await page.getByText('Inspect durable result').click();
   await expect(page.locator('pre')).toContainText('10000');
   await page.screenshot({path:'test-results/dashboard.png',fullPage:true});
+  const schemaURL=await page.getByRole('link',{name:'OpenAPI schema'}).getAttribute('href');
+  const response=await page.request.get(schemaURL);
+  expect(response.ok()).toBe(true);
+  expect((await response.json()).paths).toHaveProperty('/api/reports');
   expect(errors).toEqual([]);
 });
 
 test('worker failure recovers through the real Job controller', async ({page}) => {
   await page.goto('/');
-  await expect(page.getByRole('status').first()).toContainText('Cluster connected');
+  await expect(page.getByRole('status').first()).toContainText('API connected');
   await page.getByRole('radio',{name:'Fail, then recover'}).check();
   await page.getByRole('button', {name:'Dispatch report'}).click();
   await expect(page.locator('.badge')).toHaveText('succeeded',{timeout:100000});
@@ -25,7 +29,7 @@ test('worker failure recovers through the real Job controller', async ({page}) =
 test('mobile controls are usable without horizontal overflow', async ({page}) => {
   await page.setViewportSize({width:390,height:844});
   await page.goto('/');
-  await expect(page.getByRole('status').first()).toContainText('Cluster connected');
+  await expect(page.getByRole('status').first()).toContainText('API connected');
   await expect(page.getByRole('button',{name:'Dispatch report'})).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.getByRole('radio',{name:'Exhaust the budget'}).focus();

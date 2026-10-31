@@ -63,7 +63,7 @@ async def lifespan(app):
     worker.join(timeout=8)
 
 
-app = FastAPI(title="Dispatch report platform", lifespan=lifespan)
+app = FastAPI(title="Dispatch report platform", lifespan=lifespan, docs_url=None, redoc_url=None)
 
 
 @app.middleware("http")

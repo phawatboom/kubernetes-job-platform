@@ -20,6 +20,8 @@ flowchart LR
 The UI is at **http://localhost:8095**. Kubernetes controls execution; PostgreSQL
 retains accepted intent and results. Finished Jobs expire after five minutes.
 
+![Dispatch running a real report](docs/images/dashboard.png)
+
 ## Run locally
 
 Requires Docker with Linux containers, Python 3.12+, and `kubectl` on PATH
@@ -72,6 +74,11 @@ cluster, including its database volume and reports. Other clusters stay intact.
 - [Operator runbook](docs/runbook.md)
 - [Five-minute interview walkthrough](docs/walkthrough.md)
 - [Recorded verification](docs/verification.json)
+- [Mobile layout](docs/images/mobile.png)
+
+The dashboard links to the local `/openapi.json` schema. It intentionally has no
+CDN-dependent Swagger/Redoc page; the content security policy permits local
+scripts only.
 
 Local checks require only the dev dependencies, separate from the image:
 

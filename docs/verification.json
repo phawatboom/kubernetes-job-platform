@@ -1,0 +1,58 @@
+{
+  "verified_at": "2026-10-31T07:17:22.695532+00:00",
+  "source_commit": "40d1b1c4f416e248f5114abc8ca8faecdfdbe34b",
+  "source_dirty": false,
+  "environment": "single-node kind; Docker-backed developer/CI lab",
+  "checks": [
+    {
+      "check": "durable result, idempotent submission, payload conflict, session isolation",
+      "passed": true,
+      "lines": 10000
+    },
+    {
+      "check": "Job controller replaces failed worker",
+      "passed": true,
+      "worker_attempts": 2
+    },
+    {
+      "check": "retry exhaustion becomes terminal",
+      "passed": true,
+      "worker_attempts": 2
+    },
+    {
+      "check": "killed worker replaced; one durable result",
+      "passed": true,
+      "worker_attempts": 2
+    },
+    {
+      "check": "persisted dispatch intent survives API absence",
+      "passed": true
+    },
+    {
+      "check": "ambiguous Job create adopts existing deterministic name (409)",
+      "passed": true
+    },
+    {
+      "check": "dispatcher denied secret reads, Pod exec, Deployment patches",
+      "passed": true
+    },
+    {
+      "check": "manual horizontal scale 2 to 3 to 2",
+      "passed": true
+    },
+    {
+      "check": "PodDisruptionBudget rejects eviction of sole ready API Pod",
+      "passed": true
+    },
+    {
+      "check": "rolling update through stable NodePort",
+      "passed": true,
+      "successful_probes": 9,
+      "failed_probes": 0
+    },
+    {
+      "check": "database Pod replacement preserves PVC-backed results",
+      "passed": true
+    }
+  ]
+}

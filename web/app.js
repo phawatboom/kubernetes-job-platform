@@ -10,11 +10,11 @@ async function api(path, body) {
 function node(tag, text, className) { const item = document.createElement(tag); item.textContent = text; if(className) item.className=className; return item; }
 async function refresh() {
   const data = await api('/api/reports');
-  el('connection').textContent='● Cluster connected';
+  el('connection').textContent='● API connected';
   el('revision').textContent=`revision ${data.revision}`;
   if(JSON.stringify(data.reports) === lastRender) return;
   lastRender=JSON.stringify(data.reports);
-  el('count').textContent=`${data.reports.length} reports`;
+  el('count').textContent=`${data.reports.length} report${data.reports.length===1?'':'s'}`;
   el('reports').replaceChildren();
   if(!data.reports.length) el('reports').append(node('p','Your next report starts here.','empty'));
   for(const report of data.reports) {
