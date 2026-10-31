@@ -167,7 +167,8 @@ def run():
         stop.set()
         thread.join(timeout=6)
     assert observations and all(observations), observations
-    assert api("/api/reports", token)["revision"] == revision
+    # Deployment readiness and Service routing converge independently.
+    wait(lambda: api("/api/reports", token)["revision"] == revision, timeout=20)
     record("rolling update through stable NodePort", successful_probes=len(observations), failed_probes=0)
 
     kubectl("delete", "pod", "postgres-0", capture_output=True)

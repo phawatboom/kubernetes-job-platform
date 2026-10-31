@@ -72,6 +72,11 @@ pass. The committed [verification report](verification.json) is a recorded run,
 not live monitoring. It includes the tested source commit and environment.
 CI publishes fresh results as an artifact.
 
+Deployment completion and Service routing are separate observations. The rollout
+check allows up to 20 seconds for the new revision to reach the NodePort after
+the Deployment is ready; its independent HTTP probe still rejects any observed
+availability failure during the rollout.
+
 ## Diagnose a queued report
 
 ```sh
