@@ -75,7 +75,7 @@ Local checks require only the dev dependencies, separate from the image:
 
 ```sh
 uv sync --locked --extra test
-uv run --locked --extra test pytest
+uv run --locked --extra test python -m pytest
 ```
 
 This is a local platform study, not a production cluster. One node and one

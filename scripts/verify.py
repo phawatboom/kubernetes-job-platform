@@ -77,8 +77,9 @@ def run():
     retry = api("/api/reports", token, {"request_key": str(uuid4()), "mode": "retry"})
     result = wait(lambda: terminal(token, retry["id"]))
     assert result["status"] == "succeeded" and result["attempts"] == 2
-    job = get("job/report-" + retry["id"])
-    assert job["status"]["failed"] >= 1 and job["status"]["succeeded"] == 1
+    job = wait(lambda: (j if j.get("status", {}).get("succeeded") == 1 else None)
+               if (j := get("job/report-" + retry["id"])) else None)
+    assert job["status"]["failed"] >= 1
     record("Job controller replaces failed worker", worker_attempts=2)
 
     failed = api("/api/reports", token, {"request_key": str(uuid4()), "mode": "fail"})
@@ -117,7 +118,7 @@ def run():
     # Restore the result state: an intentional test-only DB mutation, not a worker replay.
     sql = f"UPDATE reports SET status='succeeded' WHERE id='{pending_id}';"
     kubectl("exec", "postgres-0", "--", "psql", "-U", "dispatch", "-d", "dispatch", "-c", sql, capture_output=True)
-    assert get("job/report-" + pending_id)["status"]["succeeded"] == 1
+    wait(lambda: get("job/report-" + pending_id).get("status", {}).get("succeeded") == 1)
     record("ambiguous Job create adopts existing deterministic name (409)")
 
     for resource, verb in [("secrets", "get"), ("pods/exec", "create"), ("deployments.apps", "patch")]:
@@ -181,6 +182,7 @@ if __name__ == "__main__":
     run()
     output = {"verified_at": datetime.now(timezone.utc).isoformat(),
               "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
+              "source_dirty": bool(subprocess.check_output(["git", "status", "--porcelain", "--untracked-files=no"], cwd=ROOT, text=True).strip()),
               "environment": "single-node kind; Docker-backed developer/CI lab",
               "checks": checks}
     target = ROOT / "test-results/verification.json"

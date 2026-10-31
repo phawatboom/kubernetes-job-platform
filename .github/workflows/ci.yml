@@ -1,0 +1,54 @@
+name: Verify Kubernetes platform
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  kind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with: {python-version: "3.12"}
+      - uses: actions/setup-node@v6
+        with: {node-version: "24", cache: npm}
+      - name: Install locked development dependencies
+        run: |
+          pip install uv==0.12.5
+          uv sync --locked --extra test
+      - name: Unit contracts
+        run: uv run --locked --extra test python -m pytest -q
+      - name: Install kubectl with checksum verification
+        run: |
+          curl --fail --location --output kubectl https://dl.k8s.io/release/v1.37.0/bin/linux/amd64/kubectl
+          curl --fail --location --output kubectl.sha256 https://dl.k8s.io/release/v1.37.0/bin/linux/amd64/kubectl.sha256
+          echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/kubectl
+          rm kubectl.sha256
+      - name: Start isolated kind platform
+        run: python scripts/lab.py up
+      - name: Real cluster recovery and operations checks
+        run: python scripts/verify.py
+      - name: Install browser test dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Dashboard browser checks
+        run: npm run test:e2e
+      - name: Collect failure diagnostics
+        if: failure()
+        run: |
+          python scripts/lab.py kubectl get pods,jobs,events > cluster-diagnostics.txt || true
+          python scripts/lab.py kubectl logs deployment/api > api-logs.txt || true
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: platform-evidence
+          path: |
+            test-results/
+            cluster-diagnostics.txt
+            api-logs.txt
+      - name: Delete only the lab cluster
+        if: always()
+        run: python scripts/lab.py down
