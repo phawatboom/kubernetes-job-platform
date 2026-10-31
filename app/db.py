@@ -7,6 +7,7 @@ from psycopg.rows import dict_row
 
 @contextmanager
 def connection():
+    # shortcut: shared bootstrap DB role in this local lab; restrict roles before public deployment.
     with psycopg.connect(os.environ["DATABASE_URL"], row_factory=dict_row, connect_timeout=3) as conn:
         conn.execute("SET statement_timeout = '5s'")
         yield conn

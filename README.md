@@ -4,6 +4,8 @@ A report factory that gives Kubernetes a useful job: run bounded, retryable batc
 work while a small API remains independently deployable. Reports aggregate 10,000
 generated sales lines. No private data, vendor accounts, or paid cloud is required.
 
+[![Kubernetes verification](https://github.com/phawatboom/kubernetes-job-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/phawatboom/kubernetes-job-platform/actions/workflows/ci.yml)
+
 ```mermaid
 flowchart LR
   Browser --> Service[NodePort Service]

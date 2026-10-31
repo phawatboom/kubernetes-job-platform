@@ -20,7 +20,9 @@ a benchmark of computation, Kubernetes startup time, or production capacity.
 | API instances | Deployment/ReplicaSet | Replaceable |
 | Database files | PVC on kind node | Survive database Pod replacement, not cluster deletion |
 
-There is one application database and one trusted application DB role. This is
+There is one application database and one trusted application DB role. The
+PostgreSQL image's bootstrap superuser is also the application's role: a local
+lab shortcut, not least-privilege database access. This is
 not a microservices database-isolation project. The API and workers intentionally
 share the report schema. Application schema changes need coordination; startup
 creates the initial table under a PostgreSQL advisory lock, not a general
